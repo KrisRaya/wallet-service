@@ -75,7 +75,7 @@ public class WalletController {
         Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(transaction.getPhoneNumber());
         walletByPhoneNumber.setBalance(transaction.getAmount());
 
-        restTemplate.postForObject("http://localhost:8080/transaction/doTopUp", walletByPhoneNumber, Wallet.class);
+        restTemplate.postForObject("http://transaction-service/doTopUp", walletByPhoneNumber, Wallet.class);
         return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 

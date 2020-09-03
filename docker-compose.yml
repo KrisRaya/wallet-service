@@ -1,0 +1,106 @@
+version: '3.1'
+services:
+  discovery-server:
+    container_name: discovery-server
+    image: discovery-server
+    build:
+      context: https://github.com/KrisRaya/discovery-server.git
+      dockerfile: ./Dockerfile
+    ports:
+      - 8761:8761
+    networks:
+      - webnet
+    restart: always
+
+  gateway-service:
+    container_name: gateway-service
+    image: gateway-service
+    build:
+      context: https://github.com/KrisRaya/zuul-gateway-service.git
+      dockerfile: ./Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - discovery-server
+      - db
+    links:
+      - discovery-server
+      - db
+    networks:
+      - webnet
+    restart: always
+
+  wallet-service:
+    container_name: wallet-service
+    image: wallet-service
+    build:
+      context: https://github.com/KrisRaya/wallet-service.git
+      dockerfile: ./Dockerfile
+    ports:
+      - 8083:8083
+    depends_on:
+      - discovery-server
+      - db
+      - gateway-service
+    links:
+      - discovery-server
+      - db
+      - gateway-service
+    networks:
+      - webnet
+    restart: always
+
+  merchant-service:
+    container_name: merchant-service
+    image: merchant-service
+    build:
+      context: https://github.com/KrisRaya/merchant-service.git
+      dockerfile: ./Dockerfile
+    ports:
+      - 8081:8081
+    depends_on:
+      - discovery-server
+      - db
+      - gateway-service
+    links:
+      - discovery-server
+      - db
+      - gateway-service
+    networks:
+      - webnet
+    restart: always
+
+  transaction-service:
+    container_name: transaction-service
+    image: transaction-service
+    build:
+      context: https://github.com/KrisRaya/transaction-service.git
+      dockerfile: ./Dockerfile
+    ports:
+      - 8082:8082
+    depends_on:
+      - discovery-server
+      - db
+      - gateway-service
+    links:
+      - discovery-server
+      - db
+      - gateway-service
+    networks:
+      - webnet
+    restart: always
+
+  db:
+    image: postgres:10.0-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - ./initial-data.sql:/docker-entrypoint-initdb.d/1-initial-data.sql
+    networks:
+      - webnet
+networks:
+  webnet:
