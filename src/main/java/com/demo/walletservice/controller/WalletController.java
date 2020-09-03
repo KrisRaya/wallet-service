@@ -6,7 +6,8 @@ import com.demo.walletservice.model.Wallet;
 import com.demo.walletservice.service.WalletService;
 import com.demo.walletservice.validator.WalletValidator;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -15,6 +16,8 @@ import java.util.List;
 
 @RestController
 public class WalletController {
+
+    private static final String STATUS = "status";
 
     @Autowired
     private WalletService walletService;
@@ -28,31 +31,30 @@ public class WalletController {
     @GetMapping("/findAll")
     public ResponseEntity<ResponseWrapper> getAll() {
         final List<Wallet> wallets = walletService.fetchAll();
-        return ResponseEntity.ok(new ResponseWrapper(wallets, Collections.singletonMap("status", HttpStatus.OK)));
+        return ResponseEntity.ok(new ResponseWrapper(wallets, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 
     @GetMapping("/findByPhoneNumber/{phoneNumber}")
-    public ResponseEntity<ResponseWrapper> findByPhoneNumber(@PathVariable String phoneNumber) {
-        final Wallet wallets = walletService.getWalletByPhoneNumber(phoneNumber);
-        return ResponseEntity.ok(new ResponseWrapper(wallets, Collections.singletonMap("status", HttpStatus.OK)));
+    public Wallet findByPhoneNumber(@PathVariable String phoneNumber) {
+        return walletService.getWalletByPhoneNumber(phoneNumber);
     }
 
     @PostMapping("/addWallet")
     public ResponseEntity<ResponseWrapper> addWallet(@RequestBody Wallet wallet) {
         final List<ErrorMessage> errorMessages = walletValidator.addWalletValidation(wallet);
         if (!errorMessages.isEmpty()) {
-            return new ResponseEntity(new ResponseWrapper(Collections.singletonMap("status", HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
         }
 
         final Wallet newWallet = walletService.addWallet(wallet);
-        return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap("status", HttpStatus.OK)));
+        return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 
     @PostMapping("/topUpBalance")
     public ResponseEntity<ResponseWrapper> topUpBalance(@RequestBody Wallet wallet) {
         final List<ErrorMessage> errorMessages = walletValidator.topUpBalanceValidation(wallet);
         if (!errorMessages.isEmpty()) {
-            return new ResponseEntity(new ResponseWrapper(Collections.singletonMap("status", HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
+            return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
         }
 
         Wallet newWallet = walletService.topUpBalance(wallet);
@@ -61,18 +63,17 @@ public class WalletController {
         walletByPhoneNumber.setBalance(wallet.getBalance());
 
         restTemplate.postForObject("http://localhost:8080/transaction/doTopUp", walletByPhoneNumber, Wallet.class);
-        return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap("status", HttpStatus.OK)));
+        return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 
-    @GetMapping("/bulkcreate")
-    public String bulkCreate() {
-        Wallet wallet = new Wallet();
-        wallet.setName("abc");
-        wallet.setId(1L);
-        wallet.setEmail("abc");
-        wallet.setPhoneNumber("abc");
-        wallet.setBalance(2222L);
-        walletService.addWallet(wallet);
-        return "Wallet created";
+    @PostMapping("/deductBalance")
+    public ResponseEntity<ResponseWrapper> deductBalance(@RequestBody Wallet wallet) {
+        final List<ErrorMessage> errorMessages = walletValidator.deductBalanceValidation(wallet);
+        if (!errorMessages.isEmpty()) {
+            return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        Wallet newWallet = walletService.deductBalance(wallet);
+        return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 }

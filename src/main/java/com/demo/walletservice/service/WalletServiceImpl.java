@@ -26,7 +26,8 @@ public class WalletServiceImpl implements WalletService {
 
     @Override
     public Wallet addWallet(Wallet wallet) {
-        formatPhoneNumber(wallet);
+        final String phoneNumber = formatPhoneNumber(wallet.getPhoneNumber());
+        wallet.setPhoneNumber(phoneNumber);
         wallet.setBalance(0L);
         return walletRepository.save(wallet);
     }
@@ -47,19 +48,26 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
+    public Wallet deductBalance(Wallet wallet) {
+        final Wallet walletByPhoneNumber = getWalletByPhoneNumber(wallet.getPhoneNumber());
+        walletByPhoneNumber.setBalance(walletByPhoneNumber.getBalance() - wallet.getBalance());
+        return walletRepository.save(walletByPhoneNumber);
+    }
+
+    @Override
     public Wallet getWalletByPhoneNumber(String phoneNumber) {
-        final Optional<Wallet> topUpWallet = walletRepository.findByPhoneNumber(phoneNumber);
+        final String formatPhoneNumber = formatPhoneNumber(phoneNumber);
+        final Optional<Wallet> topUpWallet = walletRepository.findByPhoneNumber(formatPhoneNumber);
         return topUpWallet.orElse(null);
     }
 
-    private void formatPhoneNumber(Wallet wallet) {
-        if (wallet.getPhoneNumber().startsWith("0")){
-            wallet.setPhoneNumber(wallet.getPhoneNumber().substring(1));
-        } else if (wallet.getPhoneNumber().startsWith("62")) {
-            wallet.setPhoneNumber(wallet.getPhoneNumber().substring(2));
-        } else if (wallet.getPhoneNumber().startsWith("+62")) {
-            wallet.setPhoneNumber(wallet.getPhoneNumber().substring(3));
+    private String formatPhoneNumber(String phoneNumber) {
+        if (phoneNumber.startsWith("62")) {
+            phoneNumber = "0" + phoneNumber.substring(2);
+        } else if (phoneNumber.startsWith("+62")) {
+            phoneNumber = "0" + phoneNumber.substring(3);
         }
+        return phoneNumber;
     }
 
 

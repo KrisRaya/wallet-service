@@ -16,5 +16,7 @@ public interface WalletService {
 
     Wallet topUpBalance(Wallet wallet);
 
+    Wallet deductBalance(Wallet wallet);
+
     Wallet getWalletByPhoneNumber(String phoneNumber);
 }

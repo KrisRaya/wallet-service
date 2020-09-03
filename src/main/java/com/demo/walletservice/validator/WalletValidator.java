@@ -53,4 +53,18 @@ public class WalletValidator {
         }
         return errorMessages;
     }
+
+    public List<ErrorMessage> deductBalanceValidation(Wallet wallet) {
+        final List<ErrorMessage> errorMessages = new ArrayList<>();
+
+        final Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(wallet.getPhoneNumber());
+        if (walletByPhoneNumber == null) {
+            errorMessages.add(new ErrorMessage("Phone Number", "Wallet is not found, check your phone number"));
+        }
+        if (walletByPhoneNumber != null && walletByPhoneNumber.getBalance() - wallet.getBalance() <= 0) {
+            errorMessages.add(new ErrorMessage("Balance", "Insufficient balance"));
+        }
+        return errorMessages;
+
+    }
 }
