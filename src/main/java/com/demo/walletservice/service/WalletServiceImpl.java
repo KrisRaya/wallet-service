@@ -2,6 +2,7 @@ package com.demo.walletservice.service;
 
 import com.demo.walletservice.model.Wallet;
 import com.demo.walletservice.model.WalletRequest;
+import com.demo.walletservice.model.WalletTransaction;
 import com.demo.walletservice.repository.WalletRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,16 +51,16 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Wallet topUpBalance(Wallet wallet) {
-        final Wallet walletByPhoneNumber = getWalletByPhoneNumber(wallet.getPhoneNumber());
-        walletByPhoneNumber.setBalance(walletByPhoneNumber.getBalance() + wallet.getBalance());
+    public Wallet topUpBalance(WalletTransaction walletTransaction) {
+        final Wallet walletByPhoneNumber = getWalletByPhoneNumber(walletTransaction.getPhoneNumber());
+        walletByPhoneNumber.setBalance(walletByPhoneNumber.getBalance() + walletTransaction.getAmount());
         return walletRepository.save(walletByPhoneNumber);
     }
 
     @Override
-    public Wallet deductBalance(Wallet wallet) {
-        final Wallet walletByPhoneNumber = getWalletByPhoneNumber(wallet.getPhoneNumber());
-        walletByPhoneNumber.setBalance(walletByPhoneNumber.getBalance() - wallet.getBalance());
+    public Wallet deductBalance(WalletTransaction walletTransaction) {
+        final Wallet walletByPhoneNumber = getWalletByPhoneNumber(walletTransaction.getPhoneNumber());
+        walletByPhoneNumber.setBalance(walletByPhoneNumber.getBalance() - walletTransaction.getAmount());
         return walletRepository.save(walletByPhoneNumber);
     }
 

@@ -4,6 +4,7 @@ import com.demo.walletservice.common.ErrorMessage;
 import com.demo.walletservice.common.ResponseWrapper;
 import com.demo.walletservice.model.Wallet;
 import com.demo.walletservice.model.WalletRequest;
+import com.demo.walletservice.model.WalletTransaction;
 import com.demo.walletservice.service.WalletService;
 import com.demo.walletservice.validator.WalletValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,29 +64,29 @@ public class WalletController {
     }
 
     @PostMapping("/topUpBalance")
-    public ResponseEntity<ResponseWrapper> topUpBalance(@RequestBody Wallet wallet) {
-        final List<ErrorMessage> errorMessages = walletValidator.topUpBalanceValidation(wallet);
+    public ResponseEntity<ResponseWrapper> topUpBalance(@RequestBody WalletTransaction transaction) {
+        final List<ErrorMessage> errorMessages = walletValidator.topUpBalanceValidation(transaction);
         if (!errorMessages.isEmpty()) {
             return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
         }
 
-        Wallet newWallet = walletService.topUpBalance(wallet);
+        Wallet newWallet = walletService.topUpBalance(transaction);
 
-        Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(wallet.getPhoneNumber());
-        walletByPhoneNumber.setBalance(wallet.getBalance());
+        Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(transaction.getPhoneNumber());
+        walletByPhoneNumber.setBalance(transaction.getAmount());
 
         restTemplate.postForObject("http://localhost:8080/transaction/doTopUp", walletByPhoneNumber, Wallet.class);
         return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 
     @PostMapping("/deductBalance")
-    public ResponseEntity<ResponseWrapper> deductBalance(@RequestBody Wallet wallet) {
-        final List<ErrorMessage> errorMessages = walletValidator.deductBalanceValidation(wallet);
+    public ResponseEntity<ResponseWrapper> deductBalance(@RequestBody WalletTransaction walletTransaction) {
+        final List<ErrorMessage> errorMessages = walletValidator.deductBalanceValidation(walletTransaction);
         if (!errorMessages.isEmpty()) {
             return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
         }
 
-        Wallet newWallet = walletService.deductBalance(wallet);
+        Wallet newWallet = walletService.deductBalance(walletTransaction);
         return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 }

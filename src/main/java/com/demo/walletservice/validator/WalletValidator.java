@@ -3,6 +3,7 @@ package com.demo.walletservice.validator;
 import com.demo.walletservice.common.ErrorMessage;
 import com.demo.walletservice.model.Wallet;
 import com.demo.walletservice.model.WalletRequest;
+import com.demo.walletservice.model.WalletTransaction;
 import com.demo.walletservice.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -44,27 +45,27 @@ public class WalletValidator {
         return errorMessages;
     }
 
-    public List<ErrorMessage> topUpBalanceValidation(Wallet wallet) {
+    public List<ErrorMessage> topUpBalanceValidation(WalletTransaction wallet) {
         final List<ErrorMessage> errorMessages = new ArrayList<>();
 
         final Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(wallet.getPhoneNumber());
         if (walletByPhoneNumber == null) {
             errorMessages.add(new ErrorMessage("Phone Number", "Wallet is not found, check your phone number"));
         }
-        if (wallet.getBalance() <= 10000) {
-            errorMessages.add(new ErrorMessage("Balance", "Top up amount must be greater than 10000"));
+        if (wallet.getAmount() <= 10000) {
+            errorMessages.add(new ErrorMessage("Amount", "Top up amount must be greater than 10000"));
         }
         return errorMessages;
     }
 
-    public List<ErrorMessage> deductBalanceValidation(Wallet wallet) {
+    public List<ErrorMessage> deductBalanceValidation(WalletTransaction walletTransaction) {
         final List<ErrorMessage> errorMessages = new ArrayList<>();
 
-        final Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(wallet.getPhoneNumber());
+        final Wallet walletByPhoneNumber = walletService.getWalletByPhoneNumber(walletTransaction.getPhoneNumber());
         if (walletByPhoneNumber == null) {
             errorMessages.add(new ErrorMessage("Phone Number", "Wallet is not found, check your phone number"));
         }
-        if (walletByPhoneNumber != null && walletByPhoneNumber.getBalance() - wallet.getBalance() <= 0) {
+        if (walletByPhoneNumber != null && walletByPhoneNumber.getBalance() - walletTransaction.getAmount() <= 0) {
             errorMessages.add(new ErrorMessage("Balance", "Insufficient balance"));
         }
         return errorMessages;
