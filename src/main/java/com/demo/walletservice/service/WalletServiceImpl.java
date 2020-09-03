@@ -1,6 +1,7 @@
 package com.demo.walletservice.service;
 
 import com.demo.walletservice.model.Wallet;
+import com.demo.walletservice.model.WalletRequest;
 import com.demo.walletservice.repository.WalletRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,19 +26,27 @@ public class WalletServiceImpl implements WalletService {
     }
 
     @Override
-    public Wallet addWallet(Wallet wallet) {
+    public Wallet addWallet(WalletRequest wallet) {
         final String phoneNumber = formatPhoneNumber(wallet.getPhoneNumber());
-        wallet.setPhoneNumber(phoneNumber);
-        wallet.setBalance(0L);
-        return walletRepository.save(wallet);
+        Wallet newWallet = new Wallet();
+        newWallet.setName(wallet.getName());
+        newWallet.setEmail(wallet.getEmail());
+        newWallet.setPhoneNumber(phoneNumber);
+        newWallet.setBalance(0L);
+        return walletRepository.save(newWallet);
     }
 
     @Override
-    public Wallet updateWallet(Wallet wallet) {
-        wallet.setName(wallet.getName());
-        wallet.setEmail(wallet.getEmail());
-        wallet.setPhoneNumber(wallet.getPhoneNumber());
-        return walletRepository.save(wallet);
+    public Wallet updateWallet(Long walletId, WalletRequest walletrequest) {
+        final String phoneNumber = formatPhoneNumber(walletrequest.getPhoneNumber());
+        final Wallet updatedWallet = walletRepository.findById(walletId).orElse(null);
+        if (updatedWallet != null) {
+            updatedWallet.setName(walletrequest.getName());
+            updatedWallet.setEmail(walletrequest.getEmail());
+            updatedWallet.setPhoneNumber(phoneNumber);
+            return walletRepository.save(updatedWallet);
+        }
+        return null;
     }
 
     @Override

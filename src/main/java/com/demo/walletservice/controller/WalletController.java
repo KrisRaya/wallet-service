@@ -3,6 +3,7 @@ package com.demo.walletservice.controller;
 import com.demo.walletservice.common.ErrorMessage;
 import com.demo.walletservice.common.ResponseWrapper;
 import com.demo.walletservice.model.Wallet;
+import com.demo.walletservice.model.WalletRequest;
 import com.demo.walletservice.service.WalletService;
 import com.demo.walletservice.validator.WalletValidator;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class WalletController {
     }
 
     @PostMapping("/addWallet")
-    public ResponseEntity<ResponseWrapper> addWallet(@RequestBody Wallet wallet) {
+    public ResponseEntity<ResponseWrapper> addWallet(@RequestBody WalletRequest wallet) {
         final List<ErrorMessage> errorMessages = walletValidator.addWalletValidation(wallet);
         if (!errorMessages.isEmpty()) {
             return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
@@ -48,6 +49,17 @@ public class WalletController {
 
         final Wallet newWallet = walletService.addWallet(wallet);
         return ResponseEntity.ok(new ResponseWrapper(newWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
+    }
+
+    @PostMapping("/updateWallet/{walletId}")
+    public ResponseEntity<ResponseWrapper> updateWallet(@PathVariable Long walletId, @RequestBody WalletRequest wallet) {
+        final List<ErrorMessage> errorMessages = walletValidator.updateWalletValidation(walletId, wallet);
+        if (!errorMessages.isEmpty()) {
+            return new ResponseEntity(new ResponseWrapper(Collections.singletonMap(STATUS, HttpStatus.NOT_ACCEPTABLE), errorMessages), HttpStatus.NOT_ACCEPTABLE);
+        }
+
+        final Wallet updatedWallet = walletService.updateWallet(walletId, wallet);
+        return ResponseEntity.ok(new ResponseWrapper(updatedWallet, Collections.singletonMap(STATUS, HttpStatus.OK)));
     }
 
     @PostMapping("/topUpBalance")

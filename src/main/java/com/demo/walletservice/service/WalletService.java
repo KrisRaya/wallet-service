@@ -1,6 +1,7 @@
 package com.demo.walletservice.service;
 
 import com.demo.walletservice.model.Wallet;
+import com.demo.walletservice.model.WalletRequest;
 
 import java.util.List;
 import java.util.Optional;
@@ -10,9 +11,9 @@ public interface WalletService {
 
     Optional<Wallet> findById(Long id);
 
-    Wallet addWallet(Wallet wallet);
+    Wallet addWallet(WalletRequest wallet);
 
-    Wallet updateWallet(Wallet wallet);
+    Wallet updateWallet(Long walletId, WalletRequest wallet);
 
     Wallet topUpBalance(Wallet wallet);
 
