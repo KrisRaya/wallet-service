@@ -2,6 +2,7 @@ package com.demo.walletservice.validator;
 
 import com.demo.walletservice.common.ErrorMessage;
 import com.demo.walletservice.model.Wallet;
+import com.demo.walletservice.model.WalletRequest;
 import com.demo.walletservice.service.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class WalletValidator {
@@ -18,7 +21,7 @@ public class WalletValidator {
     private WalletService walletService;
 
 
-    public List<ErrorMessage> addWalletValidation(Wallet wallet) {
+    public List<ErrorMessage> walletValidation(WalletRequest wallet) {
         final List<ErrorMessage> errorMessages = new ArrayList<>();
         if (wallet.getName().isEmpty()) {
             errorMessages.add(new ErrorMessage("Name", "Name must be set"));
@@ -66,5 +69,36 @@ public class WalletValidator {
         }
         return errorMessages;
 
+    }
+
+    public List<ErrorMessage> addWalletValidation(WalletRequest wallet) {
+        return Stream.concat(walletValidation(wallet).stream(), verifyPhoneNumberExist(wallet.getPhoneNumber()).stream())
+                .collect(Collectors.toList());
+    }
+
+    public List<ErrorMessage> updateWalletValidation(Long walletId, WalletRequest wallet) {
+        return Stream.concat(Stream.concat(verifyWalletIdExist(walletId).stream(),
+                walletValidation(wallet).stream()), verifyPhoneNumberExist(wallet.getPhoneNumber()).stream())
+                .collect(Collectors.toList());
+    }
+
+    private List<ErrorMessage> verifyWalletIdExist(Long walletId) {
+        final List<ErrorMessage> errorMessages = new ArrayList<>();
+
+        final Wallet wallet = walletService.findById(walletId).orElse(null);
+        if (wallet == null) {
+            errorMessages.add(new ErrorMessage("Wallet Id", "Wallet ID is not exist"));
+        }
+        return errorMessages;
+    }
+
+    private List<ErrorMessage> verifyPhoneNumberExist(String phoneNumber) {
+        final List<ErrorMessage> errorMessages = new ArrayList<>();
+
+        final Wallet wallet = walletService.getWalletByPhoneNumber(phoneNumber);
+        if (wallet != null) {
+            errorMessages.add(new ErrorMessage("Phone Number", "Phone number has been used"));
+        }
+        return errorMessages;
     }
 }
